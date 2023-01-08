@@ -13,59 +13,26 @@ import javax.swing.Timer;
 import Animation.SizeAnimation;
 
 public class VolumeAnimation implements MouseListener{
-	private Timer timer;
 	private boolean ACTIVE = true;
 	private JSlider silder;
-	private int width;
-	private JPanel panel;
+	
 	public VolumeAnimation(JSlider silder) {
 		this.silder = silder;
-		width = silder.getPreferredSize().width;
-		this.panel = (JPanel) silder.getParent();
-	}
-	
-	private void anime(int width1, int width2, int millisecond) {
-		int speed = width1 < width2 ? 10: -10;
-		int interval = millisecond / Math.abs(width1 - width2);
-		int height = silder.getPreferredSize().height;
-		timer = new Timer(interval, new ActionListener() {
-			int width = width1;
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				width += speed;
-				silder.setPreferredSize(new Dimension(width, height));
-
-				if(speed > 0 && width >= width2) {
-					silder.setPreferredSize(new Dimension(width - (width - width2), height));
-					timer.stop();
-				}
-				else if(speed < 0 && width <= width2){
-					silder.setPreferredSize(new Dimension(width + (width - width2), height));
-					timer.stop();
-				}
-
-				panel.repaint();
-				panel.revalidate();
-			}
-			
-		});
-		timer.start();
 	}
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
 		if(e.getClickCount() == 1) {
+			SizeAnimation sa = new SizeAnimation(silder);
+			sa.setDuration(250);
+			Dimension size1 = new Dimension(200, this.silder.getHeight());
+			Dimension size2 = new Dimension(0, this.silder.getHeight());
+			sa.setSize(size1, size2);
 			if(ACTIVE) {
-				SizeAnimation sa = new SizeAnimation(silder);
-				sa.setDuration(500);
-				sa.setValues(width, 0, SizeAnimation.WIDTH);
 				sa.run();
 			}
 			else {
-				SizeAnimation sa = new SizeAnimation(silder);
-				sa.setDuration(500);
-				sa.setValues(0, width, SizeAnimation.WIDTH);
-				sa.run();
+				sa.runReverse();
 			}
 			
 			ACTIVE = !ACTIVE;		

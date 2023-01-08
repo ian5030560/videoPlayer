@@ -2,6 +2,7 @@ package videoplayer;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -21,10 +22,9 @@ import javax.swing.border.Border;
 
 import Animation.SizeAnimation;
 
-public class NewButton extends JButton implements MouseListener{
+public abstract class NewButton extends JButton implements MouseListener{
 	
 	private BufferedImage image;
-	private Color defaultColor = this.getBackground();
 	
 	public NewButton() {
 		this.addMouseListener(this);
@@ -55,57 +55,14 @@ public class NewButton extends JButton implements MouseListener{
 		int height = this.getSize().height;
 		Image image = this.image.getScaledInstance(width - 10, height - 10, Image.SCALE_SMOOTH);
 		g2d.drawImage(image, 3, 3, null);
-		
-		if(this.getModel().isRollover()) {
-			g2d.setColor(Color.LIGHT_GRAY);
-			g2d.setStroke(new BasicStroke(3));
-			g2d.drawRoundRect(0, 0, width, height, 20, 20);
-		}
-		
-		if(this.getModel().isPressed()) {
-			this.setBackground(Color.GRAY);
-		}
-		else {
-			this.setBackground(defaultColor);
-		}
 	}
-
-	@Override
-	public void mouseClicked(MouseEvent e) {
-		
-		
-	}
-
+	
+	public abstract void pressAnimation();
+	
 	@Override
 	public void mousePressed(MouseEvent e) {
 		if(e.getClickCount() == 1) {
-			SizeAnimation sa = new SizeAnimation(this);
-			sa.setValues(this.getWidth(), this.getWidth() / 2, SizeAnimation.WIDTH);
-			sa.setDuration(250);
-			sa.runLoop(2);
-			
-			SizeAnimation sa1 = new SizeAnimation(this);
-			sa1.setDuration(250);
-			sa1.setValues(this.getHeight(), this.getHeight() / 2, SizeAnimation.HEIGHT);
-			sa1.runLoop(2);		
+			pressAnimation();
 		}
-	}
-
-	@Override
-	public void mouseReleased(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void mouseEntered(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void mouseExited(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
 	}
 }

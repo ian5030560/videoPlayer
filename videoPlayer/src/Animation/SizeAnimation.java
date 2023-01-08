@@ -2,72 +2,57 @@ package Animation;
 
 import java.awt.Dimension;
 import javax.swing.JComponent;
+import org.pushingpixels.radiance.animation.api.Timeline;
+import org.pushingpixels.radiance.animation.api.Timeline.Builder;
+import org.pushingpixels.radiance.animation.api.Timeline.RepeatBehavior;
+import org.pushingpixels.radiance.animation.api.ease.Linear;
 
 public class SizeAnimation{
-	private int width;
-	private int height;
+	private Dimension size;
 	private int duration = 1000;
 	private JComponent comp;
-	public static final int WIDTH = 0;
-	public static final int HEIGHT = 1;
-	private int type;
-	private int value1;
-	private int value2;
+	private Builder timeline;
 	
 	public SizeAnimation(JComponent comp) {
 		this.comp = comp;
+		timeline = Timeline.builder(this);
+		timeline.setEase(new Linear());
 	}
 	
-	public SizeAnimation(JComponent comp, int value1, int value2, int type) {
+	public SizeAnimation(JComponent comp, Dimension value1, Dimension value2) {
 		this(comp);
-		setValues(value1, value2, type);
+		setSize(value1, value2);
 	}
 	
-	public void setValues(int value1, int value2, int type) {
-		this.type = type;
-		this.value1 = value1;
-		this.value2 = value2;
+	public void setSize(Dimension value) {
+		this.size = value;
+		this.comp.setSize(this.size);
+	}
+	
+	public void setSize(Dimension value1, Dimension value2) {
+		timeline.addPropertyToInterpolate("size", value1, value2);
 	}
 	
 	public void setDuration(int millisecond) {
 		this.duration = millisecond;
-	}
-	
-	public int getDuration() {
-		return this.duration;
-	}
-	
-	public int getType() {
-		return this.type;
-	}
-	
-	public int[] getValues() {
-		int[] arr = {this.value1, this.value2};
-		return arr;
-	}
-	
-	public void setWidth(int width) {
-		this.comp.setSize(new Dimension(width, this.comp.getHeight()));
-		this.width = width;
-	}
-	
-	public void setHeight(int height) {
-		this.comp.setSize(new Dimension(this.comp.getWidth(), height));
-		this.height = height;
+		timeline.setDuration(this.duration);
 	}
 	
 	public void run() {
-		SizeAnimationEngine engine = new SizeAnimationEngine(this);
-		engine.getOrder(SizeAnimationEngine.NORMAL);
+		timeline.play();
 	}
 	
 	public void runLoop(int count) {
-		SizeAnimationEngine engine = new SizeAnimationEngine(this);
-		engine.getOrder(SizeAnimationEngine.LOOP, count);
+		if(count == -1) {
+			timeline.playLoop(RepeatBehavior.REVERSE);
+		}
+		else {
+			timeline.playLoop(count, RepeatBehavior.REVERSE);
+		}
+		
 	}
 	
 	public void runReverse() {
-		SizeAnimationEngine engine = new SizeAnimationEngine(this);
-		engine.getOrder(SizeAnimationEngine.REVERSE);
+		timeline.playReverse();
 	}
 }

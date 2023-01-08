@@ -9,5 +9,6 @@
 	</classpathentry>
 	<classpathentry kind="lib" path="C:/java external jar/flatlaf-3.0.jar"/>
 	<classpathentry kind="lib" path="D:/radiance-sunshine/radiance-sunshine.jar"/>
+	<classpathentry kind="lib" path="D:/ffmpeg-cli-wrapper-master/ffmpeg-cli-wrapper-master.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

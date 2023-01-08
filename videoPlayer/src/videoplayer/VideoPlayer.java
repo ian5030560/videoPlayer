@@ -23,6 +23,11 @@ import java.awt.Color;
 import java.awt.Font;
 import javax.swing.border.MatteBorder;
 
+import org.pushingpixels.radiance.theming.api.RadianceThemingCortex;
+import org.pushingpixels.radiance.theming.api.RadianceThemingSlices.FocusKind;
+import org.pushingpixels.radiance.theming.api.skin.ModerateSkin;
+
+import com.formdev.flatlaf.FlatIntelliJLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 
 import Animation.SizeAnimation;
@@ -48,7 +53,7 @@ public class VideoPlayer extends JFrame {
 	private JLabel speedButton;
 	private JPanel panel_7;
 	private JLabel menuButton;
-	private JPanel panel_8;
+	private JPanel videoPanel;
 	private MenuPanel menuPanel;
 	private JSlider progressSilder;
 	private JLabel volumeButton;
@@ -129,7 +134,7 @@ public class VideoPlayer extends JFrame {
 		flowLayout_2.setHgap(30);
 		panel_2.add(panel_4);
 		
-		backwardButton = new NewButton(this.getClass().getResource("/backward.png"));
+		backwardButton = new ActionButton(this.getClass().getResource("/backward.png"));
 		backwardButton.setPreferredSize(new Dimension(50, 50));
 		backwardButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		panel_4.add(backwardButton);
@@ -139,7 +144,7 @@ public class VideoPlayer extends JFrame {
 		playButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		panel_4.add(playButton);
 			
-		forwardButton = new NewButton(this.getClass().getResource("/forward.png"));
+		forwardButton = new ActionButton(this.getClass().getResource("/forward.png"));
 		forwardButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		forwardButton.setPreferredSize(new Dimension(50, 50));
 		panel_4.add(forwardButton);
@@ -177,19 +182,20 @@ public class VideoPlayer extends JFrame {
 		panel_5.add(volumeSlider);
 		
 		volumeButton.addMouseListener(new VolumeAnimation(volumeSlider));
+		
 		progressSilder = new JSlider();
 		progressSilder.setValue(0);
 		panel_3.add(progressSilder);
 		
-		panel_8 = new JPanel();
-		panel_8.setBackground(new Color(0, 0, 0));
-		contentPane.add(panel_8, BorderLayout.CENTER);
-		panel_8.setLayout(new BorderLayout(0, 0));
+		videoPanel = new JPanel();
+		videoPanel.setBackground(new Color(0, 0, 0));
+		contentPane.add(videoPanel, BorderLayout.CENTER);
+		videoPanel.setLayout(new BorderLayout(0, 0));
 		
 		menuPanel = new MenuPanel();
 		menuPanel.setBackground(new Color(255, 255, 255));
 		menuPanel.setPreferredSize(new Dimension(0, 10));
-		panel_8.add(menuPanel, BorderLayout.WEST);
+		videoPanel.add(menuPanel, BorderLayout.WEST);
 		
 		menuButton.addMouseListener(new MenuAnimation(menuPanel));
 	}

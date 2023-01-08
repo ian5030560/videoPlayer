@@ -1,5 +1,6 @@
 package videoplayer;
 
+import java.awt.Dimension;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import javax.swing.JPanel;
@@ -16,16 +17,17 @@ public class MenuAnimation implements MouseListener {
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
-		SizeAnimation sa = new SizeAnimation(panel);
-		sa.setDuration(250);
 		if(e.getClickCount() == 1) {
+			SizeAnimation sa = new SizeAnimation(panel);
+			sa.setDuration(250);
+			Dimension size1 = new Dimension(200, this.panel.getHeight());
+			Dimension size2 = new Dimension(0, this.panel.getHeight());
+			sa.setSize(size1, size2);
 			if(OPEN) {
-				sa.setValues(200, 0, SizeAnimation.WIDTH);
 				sa.run();
 			}
 			else {
-				sa.setValues(0, 200, SizeAnimation.WIDTH);
-				sa.run();
+				sa.runReverse();
 			}	
 			OPEN = !OPEN;
 		}
