@@ -7,56 +7,61 @@ import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import java.awt.BorderLayout;
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import java.awt.FlowLayout;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.Image;
 
 import javax.swing.JSlider;
-import javax.swing.border.BevelBorder;
-import javax.swing.BoxLayout;
+import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 
 import java.awt.Dimension;
 import java.awt.Color;
 import java.awt.Font;
 import javax.swing.border.MatteBorder;
-
-import org.pushingpixels.radiance.theming.api.RadianceThemingCortex;
-import org.pushingpixels.radiance.theming.api.RadianceThemingSlices.FocusKind;
-import org.pushingpixels.radiance.theming.api.skin.ModerateSkin;
-
-import com.formdev.flatlaf.FlatIntelliJLaf;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import com.formdev.flatlaf.FlatLightLaf;
 
-import Animation.SizeAnimation;
+import animation.MenuAnimation;
+import animation.VolumeAnimation;
+import component.MenuPanel;
+import component.PlayButton;
+import video.VideoPanel;
 
 import java.awt.Cursor;
 import java.awt.Component;
-import javax.swing.SwingConstants;
 import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
-import java.awt.event.MouseAdapter;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.awt.event.MouseMotionAdapter;
 import java.awt.event.MouseEvent;
-import java.net.URL;
+import javax.swing.JToggleButton;
+import component.MenuButton;
+
 
 public class VideoPlayer extends JFrame {
 
-	private JPanel contentPane;
+	private VideoPanel videoPanel;
 	private JSlider volumeSlider;
-	private JLabel fileButton;
-	private NewButton forwardButton;
+	private JButton fileButton;
+	private JButton forwardButton;
 	private PlayButton playButton;
-	private NewButton backwardButton;
-	private JLabel modeButton;
-	private JLabel speedButton;
-	private JPanel panel_7;
-	private JLabel menuButton;
-	private JPanel videoPanel;
-	private MenuPanel menuPanel;
+	private JButton backwardButton;
 	private JSlider progressSilder;
-	private JLabel volumeButton;
+	private JButton volumeButton;
+	private JLabel timeLabel;
+	private JPanel panel_1;
+	private JPanel panel_7;
+	private JPanel panel_8;
+	private MenuButton menuButton;
+	private JPanel panel_9;
+	private MenuPanel menuPanel;
+	private JToggleButton modeButton;
 
 	/**
 	 * Launch the application.
@@ -76,8 +81,9 @@ public class VideoPlayer extends JFrame {
 
 	/**
 	 * Create the frame.
+	 * @throws IOException 
 	 */
-	public VideoPlayer() {
+	public VideoPlayer() throws IOException {
 		try {
 		    UIManager.setLookAndFeel( new FlatLightLaf() );
 		}
@@ -87,30 +93,16 @@ public class VideoPlayer extends JFrame {
 
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 822, 646);
-		contentPane = new JPanel();
-		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
+		videoPanel = new VideoPanel();
+		videoPanel.setBackground(new Color(0, 0, 0));
+		videoPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 
-		setContentPane(contentPane);
-		contentPane.setLayout(new BorderLayout(0, 0));
+		setContentPane(videoPanel);
+		videoPanel.setLayout(new BorderLayout(0, 0));
 		
-		panel_7 = new JPanel();
-		FlowLayout flowLayout_4 = (FlowLayout) panel_7.getLayout();
-		flowLayout_4.setAlignment(FlowLayout.LEFT);
-		contentPane.add(panel_7, BorderLayout.NORTH);
-		
-		menuButton = new JLabel("≡");
-		menuButton.setHorizontalAlignment(SwingConstants.CENTER);
-		menuButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-		menuButton.setPreferredSize(new Dimension(30, 30));
-		menuButton.addMouseListener(new MenuButtonStyle(menuButton));
-		menuButton.setOpaque(true);
-		menuButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		menuButton.setFont(new Font("新細明體", Font.BOLD, 25));
-		panel_7.add(menuButton);
-		
-		JPanel panel_1 = new JPanel();
+		panel_1 = new JPanel();
 		panel_1.setBorder(new MatteBorder(5, 0, 0, 0, (Color) new Color(255, 255, 255)));
-		contentPane.add(panel_1, BorderLayout.SOUTH);
+		videoPanel.add(panel_1, BorderLayout.SOUTH);
 		panel_1.setLayout(new BorderLayout(0, 0));
 		
 		JPanel panel_2 = new JPanel();
@@ -122,10 +114,32 @@ public class VideoPlayer extends JFrame {
 		flowLayout.setHgap(20);
 		panel_2.add(panel);
 		
-		ImageEditor fileImage = new ImageEditor(this.getClass().getResource("/file.png"));
-		fileImage.setSize(60, 40);
-		fileButton = new JLabel(fileImage);
-		fileImage.link(fileButton);
+		ImageIcon fileIcon = new ImageIcon(this.getClass().getResource("/file.png"));
+		Image fileImage = fileIcon.getImage().getScaledInstance(60, 40, Image.SCALE_SMOOTH);
+		fileIcon.setImage(fileImage);
+		fileButton = new JButton(fileIcon);
+		fileButton.addActionListener(new ActionListener() {
+			Thread thread;
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				JFileChooser chooser = new JFileChooser();
+				chooser.setAcceptAllFileFilterUsed(false);
+				chooser.setFileFilter(new FileNameExtensionFilter("video file", "mp4", "wav"));
+				if(chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+					thread = new Thread() {
+						@Override
+						public void run() {
+							videoPanel.fetchVideo(chooser.getSelectedFile());
+							progressSilder.setMaximum((int) videoPanel.getDuration());
+							int time = (int) (videoPanel.getDuration() / 1000000);
+							timeLabel.setText(String.format("%02d:%02d", time / 60, time % 60));
+							menuPanel.addItem(chooser.getSelectedFile().getAbsolutePath());
+						}
+					};
+					thread.start();
+				}
+			}
+		});
 		fileButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		panel.add(fileButton);
 		
@@ -134,70 +148,166 @@ public class VideoPlayer extends JFrame {
 		flowLayout_2.setHgap(30);
 		panel_2.add(panel_4);
 		
-		backwardButton = new ActionButton(this.getClass().getResource("/backward.png"));
+		ImageIcon backIcon = new ImageIcon(this.getClass().getResource("/backward.png"));
+		Image backImage = backIcon.getImage().getScaledInstance(50, 50, Image.SCALE_SMOOTH);
+		backIcon.setImage(backImage);
+		backwardButton = new JButton(backIcon);
 		backwardButton.setPreferredSize(new Dimension(50, 50));
 		backwardButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		backwardButton.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				videoPanel.setPosition(videoPanel.getPosition() - 5000000);
+			}
+			
+		});
 		panel_4.add(backwardButton);
 		
 		playButton = new PlayButton();
-		playButton.setPreferredSize(new Dimension(80, 80));
+		playButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if(!playButton.PLAY) {
+					videoPanel.play();
+					playButton.setPlay();
+				}
+				else {
+					videoPanel.stop();
+					playButton.setPause();
+				}
+			}
+			
+		});
 		playButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		panel_4.add(playButton);
-			
-		forwardButton = new ActionButton(this.getClass().getResource("/forward.png"));
+
+		ImageIcon forwardIcon = new ImageIcon(this.getClass().getResource("/forward.png"));
+		Image forwardImage = forwardIcon.getImage().getScaledInstance(50, 50, Image.SCALE_SMOOTH);
+		forwardIcon.setImage(forwardImage);
+		forwardButton = new JButton(forwardIcon);
 		forwardButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		forwardButton.setPreferredSize(new Dimension(50, 50));
 		panel_4.add(forwardButton);
-		
+		forwardButton.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				videoPanel.setPosition(videoPanel.getPosition() + 5000000);
+			}
+			
+		});
+
 		JPanel panel_6 = new JPanel();
 		FlowLayout flowLayout_3 = (FlowLayout) panel_6.getLayout();
 		flowLayout_3.setHgap(20);
 		panel_2.add(panel_6);
 		
-		modeButton = new JLabel("模式");
+		modeButton = new JToggleButton("單曲");
 		modeButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		modeButton.addActionListener(new ActionListener() {
+			private boolean LOOP = true;
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if(LOOP) {
+					modeButton.setText("循環");
+				}
+				else {
+					modeButton.setText("單曲");
+				}
+				videoPanel.setLoop(LOOP);
+				LOOP = !LOOP;
+			}
+			
+		});
+		modeButton.setFont(new Font("Microsoft JhengHei UI", Font.PLAIN, 20));
 		panel_6.add(modeButton);
-		
-		speedButton = new JLabel("x1");
-		speedButton.setFont(new Font("新細明體", Font.BOLD, 20));
-		speedButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		panel_6.add(speedButton);
 		
 		JPanel panel_3 = new JPanel();
 		panel_1.add(panel_3, BorderLayout.NORTH);
 		panel_3.setLayout(new BorderLayout(0, 0));
 		
 		JPanel panel_5 = new JPanel();
+		FlowLayout flowLayout_5 = (FlowLayout) panel_5.getLayout();
 		panel_3.add(panel_5, BorderLayout.WEST);
-
-		ImageEditor volumeImage = new ImageEditor(this.getClass().getResource("/volume control.png"));
-		volumeImage.setSize(30, 30);
-		volumeButton = new JLabel(volumeImage);
-		volumeImage.link(volumeButton);
+		
+		BufferedImage volumeImage = ImageIO.read(this.getClass().getResource("/volume control.png"));
+		ImageIcon volumeIcon = new ImageIcon(volumeImage.getScaledInstance(30, 30, Image.SCALE_SMOOTH));
+		volumeButton = new JButton(volumeIcon);
 		volumeButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		panel_5.add(volumeButton);
 		
-		volumeSlider = new JSlider();
-		volumeSlider.setValue(0);
+		volumeSlider = new JSlider(-80, 6);
+		volumeSlider.setValue(100);
+		volumeSlider.addChangeListener(new ChangeListener() {
+
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				videoPanel.setVolume(volumeSlider.getValue());
+			}
+			
+		});
 		panel_5.add(volumeSlider);
 		
 		volumeButton.addMouseListener(new VolumeAnimation(volumeSlider));
 		
 		progressSilder = new JSlider();
+		progressSilder.addMouseMotionListener(new MouseMotionAdapter() {
+			@Override
+			public void mouseDragged(MouseEvent e) {
+				videoPanel.setPosition(progressSilder.getValue());
+			}
+			
+			@Override
+			public void mouseMoved(MouseEvent e) {
+				mouseDragged(e);
+			}
+		});
 		progressSilder.setValue(0);
-		panel_3.add(progressSilder);
+		panel_3.add(progressSilder, BorderLayout.CENTER);
+		this.setLocationRelativeTo(null);
 		
-		videoPanel = new JPanel();
-		videoPanel.setBackground(new Color(0, 0, 0));
-		contentPane.add(videoPanel, BorderLayout.CENTER);
-		videoPanel.setLayout(new BorderLayout(0, 0));
+		timeLabel = new JLabel("00:00");
+		timeLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+		timeLabel.setFont(new Font("Microsoft JhengHei UI", Font.BOLD, 18));
+		panel_3.add(timeLabel, BorderLayout.EAST);
+		
+		videoPanel.processSignal.link(progressSilder, "setValue");
+		videoPanel.processSignal.link(playButton, "endState");
+		videoPanel.processSignal.link(this, "timeRecord");
+		
+		panel_7 = new JPanel();
+		panel_7.setOpaque(false);
+		videoPanel.add(panel_7, BorderLayout.WEST);
+		panel_7.setLayout(new BorderLayout(0, 0));
+		
+		panel_8 = new JPanel();
+		panel_8.setOpaque(false);
+		FlowLayout flowLayout_1 = (FlowLayout) panel_8.getLayout();
+		flowLayout_1.setAlignment(FlowLayout.LEFT);
+		panel_7.add(panel_8, BorderLayout.NORTH);
+		
+		menuButton = new MenuButton("≡");
+		menuButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		menuButton.setFont(new Font("Microsoft JhengHei UI", Font.BOLD, 25));
+		panel_8.add(menuButton);
+		
+		panel_9 = new JPanel();
+		panel_9.setOpaque(false);
+		panel_9.setPreferredSize(new Dimension(200, 400));
+		panel_7.add(panel_9, BorderLayout.CENTER);
+		panel_9.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 5));
 		
 		menuPanel = new MenuPanel();
-		menuPanel.setBackground(new Color(255, 255, 255));
-		menuPanel.setPreferredSize(new Dimension(0, 10));
-		videoPanel.add(menuPanel, BorderLayout.WEST);
+		menuPanel.setPreferredSize(new Dimension(0, 400));
+		panel_9.add(menuPanel);
+		menuPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
 		
-		menuButton.addMouseListener(new MenuAnimation(menuPanel));
+		menuButton.addActionListener(new MenuAnimation(menuPanel));
 	}
-
+	
+	public void timeRecord(int time) {
+		time = (int) ((videoPanel.getDuration() - time) / 1000000);
+		timeLabel.setText(String.format("%02d:%02d", time / 60, time % 60));
+	}
 }

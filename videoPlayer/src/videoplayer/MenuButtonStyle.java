@@ -5,19 +5,19 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
 import javax.swing.Icon;
+import javax.swing.JButton;
 import javax.swing.JLabel;
 
 public class MenuButtonStyle implements MouseListener {
-	private JLabel button;
+	private JButton button;
 	private Color backgroundColor;
-	public MenuButtonStyle(JLabel button) {
+	public MenuButtonStyle(JButton button) {
 		this.button = button;
 		this.backgroundColor = button.getBackground();
 	}
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
-		// TODO Auto-generated method stub
 
 	}
 
